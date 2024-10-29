@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "rvt/7UfteoiNyOFiaT70Vr2CEOaJ7t9d30HyeOP44bs=",
+  "Source": "auth-app-backend",
+  "BasePath": "_content/auth-app-backend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

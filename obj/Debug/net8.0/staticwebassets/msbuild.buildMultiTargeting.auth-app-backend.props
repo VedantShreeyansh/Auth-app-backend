@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\auth-app-backend.props" />
+</Project>
