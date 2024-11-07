@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using auth_app_backend.Model;
+using System.Net;
 
 namespace auth_app_backend.Services
 {
@@ -18,9 +19,8 @@ namespace auth_app_backend.Services
         public CouchDbService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _baseUrl = "http://localhost:5984"; // Base URL for CouchDB
+            _baseUrl = "http://localhost:5984";
 
-            // Set basic authentication for CouchDB (username: admin, password: password)
             var byteArray = Encoding.ASCII.GetBytes("admin:password");
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
         }
@@ -46,9 +46,10 @@ namespace auth_app_backend.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonData = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<User>(jsonData);
+                    var user = JsonConvert.DeserializeObject<User>(jsonData);
+                    return user;
                 }
-                return null; // User not found
+                return null;
             }
             catch (Exception ex)
             {
@@ -66,7 +67,15 @@ namespace auth_app_backend.Services
             {
                 var jsonData = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<FindResult<User>>(jsonData);
-                return result.Docs.FirstOrDefault();
+                var user = result.Docs.FirstOrDefault();
+
+                // Ensure user has the necessary fields
+                if (user != null)
+                {
+                    user._id = user._id; // Ensure we are using _id from CouchDB
+                }
+
+                return user;
             }
             return null;
         }
@@ -75,17 +84,73 @@ namespace auth_app_backend.Services
         {
             var json = JsonConvert.SerializeObject(user);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
+
             var response = await _httpClient.PostAsync($"{_baseUrl}/users", content);
             if (!response.IsSuccessStatusCode)
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Failed to add user: {errorContent}");
+                throw new Exception("Failed to add user.");
             }
         }
 
-        public async Task<List<User>> GetPendingUsersAsync()
+        public async Task UpdateUserAsync(User user)
         {
-            var selectorJson = $"{{\"selector\": {{\"status\": \"Pending\"}}}}";
+            // Try updating up to 3 times
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                // Fetch the latest version of the user to get the correct _rev
+                var currentUser = await GetUserByIdAsync(user._id);
+
+                if (currentUser == null)
+                {
+                    throw new Exception("User not found.");
+                }
+
+                // Ensure that we're using the latest revision
+                user._rev = currentUser._rev;
+
+                // Serialize the updated user and send the PUT request
+                var json = JsonConvert.SerializeObject(user);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PutAsync($"{_baseUrl}/users/{user._id}", content);
+
+                // Check if the response was successful
+                if (response.IsSuccessStatusCode)
+                {
+                    return; // Exit if update is successful
+                }
+
+                // If there's a conflict, we retry
+                if (response.StatusCode == HttpStatusCode.Conflict)
+                {
+                    if (attempt == 2) // Final attempt
+                    {
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        throw new Exception($"Failed to update user after {attempt + 1} attempts: {response.ReasonPhrase}, Details: {errorContent}");
+                    }
+
+                    // Wait briefly before retrying
+                    await Task.Delay(500); // Wait 500 ms before retry
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Failed to update user: {response.ReasonPhrase}, Details: {errorContent}");
+                }
+            }
+        }
+
+
+
+        public async Task<bool> UserIdExistsAsync(string userId)
+        {
+            var response = await _httpClient.GetAsync($"{_baseUrl}/users/{userId}");
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<IEnumerable<User>> GetPendingUsersAsync()
+        {
+            var selectorJson = "{\"selector\": {\"status\": \"Pending\"}}";
             var content = new StringContent(selectorJson, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync($"{_baseUrl}/users/_find", content);
@@ -95,40 +160,7 @@ namespace auth_app_backend.Services
                 var result = JsonConvert.DeserializeObject<FindResult<User>>(jsonData);
                 return result.Docs;
             }
-            return new List<User>();
-        }
-
-        public async Task UpdateUserAsync(User user)
-        {
-            // Fetch the latest _rev if not already set
-            if (string.IsNullOrEmpty(user._rev))
-            {
-                var existingUser = await GetUserByIdAsync(user.Id.ToString());
-                if (existingUser != null)
-                {
-                    user._rev = existingUser._rev;
-                }
-                else
-                {
-                    throw new Exception("User not found for update.");
-                }
-            }
-
-            var json = JsonConvert.SerializeObject(user);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PutAsync($"{_baseUrl}/users/{user.Id}?rev={user._rev}", content);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Failed to update user: {errorContent}");
-            }
-        }
-
-        public async Task<bool> UserIdExistsAsync(string id)
-        {
-            var response = await _httpClient.GetAsync($"{_baseUrl}/users/{id}");
-            return response.IsSuccessStatusCode;
+            return Enumerable.Empty<User>();
         }
     }
 

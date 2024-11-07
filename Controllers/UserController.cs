@@ -31,6 +31,7 @@ namespace auth_app_backend.Controllers
                 return BadRequest("Invalid approval data.");
             }
 
+
             var user = await _couchDbService.GetUserByIdAsync(approvalData.UserId); // Pass UserId as string
             if (user == null)
             {
