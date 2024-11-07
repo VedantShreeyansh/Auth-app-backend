@@ -3,20 +3,20 @@
   "WorkspaceRootPath": "E:\\Angular-Project\\auth-app2\\app-backend\\auth-app-backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|e:\\angular-project\\auth-app2\\app-backend\\auth-app-backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|e:\\angular-project\\auth-app2\\app-backend\\auth-app-backend\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|solutionrelative:controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|e:\\angular-project\\auth-app2\\app-backend\\auth-app-backend\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|solutionrelative:controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|e:\\angular-project\\auth-app2\\app-backend\\auth-app-backend\\couchdbservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|solutionrelative:couchdbservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|e:\\angular-project\\auth-app2\\app-backend\\auth-app-backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|e:\\angular-project\\auth-app2\\app-backend\\auth-app-backend\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|solutionrelative:controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{CBC22DD3-C721-4BDD-BB21-4A6C1A3BAE5A}|auth-app-backend.csproj|e:\\angular-project\\auth-app2\\app-backend\\auth-app-backend\\model\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -68,7 +68,7 @@
         },
         {
           "DockedWidth": 10,
-          "SelectedChildIndex": 9,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
@@ -93,31 +93,32 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 1,
               "Title": "CouchDbService.cs",
               "DocumentMoniker": "E:\\Angular-Project\\auth-app2\\app-backend\\auth-app-backend\\CouchDbService.cs",
               "RelativeDocumentMoniker": "CouchDbService.cs",
               "ToolTip": "E:\\Angular-Project\\auth-app2\\app-backend\\auth-app-backend\\CouchDbService.cs",
               "RelativeToolTip": "CouchDbService.cs",
-              "ViewState": "AgIAAHoAAAAAAAAAAAAswIMAAAAzAAAAAAAAAA==",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAACEAAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-26T13:13:05.324Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "AuthController.cs",
               "DocumentMoniker": "E:\\Angular-Project\\auth-app2\\app-backend\\auth-app-backend\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "Controllers\\AuthController.cs",
               "ToolTip": "E:\\Angular-Project\\auth-app2\\app-backend\\auth-app-backend\\Controllers\\AuthController.cs",
               "RelativeToolTip": "Controllers\\AuthController.cs",
-              "ViewState": "AgIAACQAAAAAAAAAAAAkwC8AAAAxAAAAAAAAAA==",
+              "ViewState": "AgIAADIAAAAAAAAAAAAgwD4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-26T10:48:01.899Z"
+              "WhenOpened": "2024-10-26T10:48:01.899Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "UserController.cs",
               "DocumentMoniker": "E:\\Angular-Project\\auth-app2\\app-backend\\auth-app-backend\\Controllers\\UserController.cs",
               "RelativeDocumentMoniker": "Controllers\\UserController.cs",
@@ -165,7 +166,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "E:\\Angular-Project\\auth-app2\\app-backend\\auth-app-backend\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
@@ -173,8 +174,7 @@
               "RelativeToolTip": "Program.cs",
               "ViewState": "AgIAAFEAAAAAAAAAAAAMwFwAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-26T13:43:47.807Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-10-26T13:43:47.807Z"
             },
             {
               "$type": "Document",

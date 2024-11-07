@@ -43,10 +43,7 @@ namespace auth_app_backend.Controllers
                 return Unauthorized("Invalid credentials.");
             }
 
-            if (!user.status.Equals("Approved", StringComparison.OrdinalIgnoreCase))
-            {
-                return Unauthorized("User is not approved for login.");
-            }
+           
 
             var token = GenerateJwtToken(user);
             Debug.WriteLine(user.firstName);
@@ -63,7 +60,6 @@ namespace auth_app_backend.Controllers
                 }
             });
         }
-
 
 
         private string GenerateJwtToken(User user)
