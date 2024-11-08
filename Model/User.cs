@@ -6,32 +6,31 @@ namespace auth_app_backend.Model
     public class User
     {
         [JsonProperty("_id")]
-        public string _id { get; set; } // CouchDB document ID
+        public string _id { get; set; }
 
-        // Keeping _rev for internal use, but not serialized to JSON
         [JsonIgnore]
-        public string _rev { get; set; } // For CouchDB revision ID
+        public string _rev { get; set; }
 
         [JsonProperty("Id")]
-        public string Id { get; set; }  // Frontend version, matching to _id for consistency
+        public string Id { get; set; }
 
         [Required(ErrorMessage = "First Name is required")]
-        public string firstName { get; set; }  // Changed to camelCase
+        public string firstName { get; set; }
 
         [Required(ErrorMessage = "Last Name is required")]
-        public string lastName { get; set; }   // Changed to camelCase
+        public string lastName { get; set; }
 
         [Required(ErrorMessage = "Password is required")]
-        public string password { get; set; }    // Changed to camelCase
+        public string password { get; set; }
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid Email Address")]
-        public string email { get; set; }       // Changed to camelCase
+        public string email { get; set; }
 
         [Required(ErrorMessage = "Role is required")]
-        public string role { get; set; }        // Changed to camelCase
+        public string role { get; set; }
 
-        public string status { get; set; }      // Changed to camelCase
+        public string status { get; set; }
 
         public User() { }
 

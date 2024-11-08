@@ -20,13 +20,20 @@ namespace auth_app_backend.Controllers
         public async Task<IActionResult> GetPendingUsers()
         {
             var pendingUsers = await _couchDbService.GetPendingUsersAsync();
+
+
+            if (pendingUsers == null || !pendingUsers.Any())
+            {
+                return NotFound("No pending users found.");
+            }
+
             return Ok(pendingUsers);
         }
 
         [HttpPost("approve")]
         public async Task<IActionResult> ApproveUser([FromBody] ApprovalDto approvalData)
         {
-            if (approvalData == null || string.IsNullOrWhiteSpace(approvalData.UserId))
+            if (approvalData == null || string.IsNullOrEmpty(approvalData.UserId))
             {
                 return BadRequest("Invalid approval data.");
             }

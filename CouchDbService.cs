@@ -67,15 +67,7 @@ namespace auth_app_backend.Services
             {
                 var jsonData = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<FindResult<User>>(jsonData);
-                var user = result.Docs.FirstOrDefault();
-
-                // Ensure user has the necessary fields
-                if (user != null)
-                {
-                    user._id = user._id; // Ensure we are using _id from CouchDB
-                }
-
-                return user;
+                return result.Docs.FirstOrDefault();
             }
             return null;
         }
@@ -94,10 +86,13 @@ namespace auth_app_backend.Services
 
         public async Task UpdateUserAsync(User user)
         {
-            // Try updating up to 3 times
-            for (int attempt = 0; attempt < 3; attempt++)
+            if (user == null || string.IsNullOrEmpty(user._id))
             {
-                // Fetch the latest version of the user to get the correct _rev
+                throw new ArgumentException("User data is invalid or missing.");
+            }
+
+            for (int attempt = 1; attempt <= 3; attempt++)
+            {
                 var currentUser = await GetUserByIdAsync(user._id);
 
                 if (currentUser == null)
@@ -105,42 +100,28 @@ namespace auth_app_backend.Services
                     throw new Exception("User not found.");
                 }
 
-                // Ensure that we're using the latest revision
                 user._rev = currentUser._rev;
 
-                // Serialize the updated user and send the PUT request
                 var json = JsonConvert.SerializeObject(user);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PutAsync($"{_baseUrl}/users/{user._id}", content);
 
-                // Check if the response was successful
                 if (response.IsSuccessStatusCode)
                 {
-                    return; // Exit if update is successful
+                    return;
                 }
 
-                // If there's a conflict, we retry
-                if (response.StatusCode == HttpStatusCode.Conflict)
+                if (response.StatusCode == HttpStatusCode.Conflict && attempt < 3)
                 {
-                    if (attempt == 2) // Final attempt
-                    {
-                        var errorContent = await response.Content.ReadAsStringAsync();
-                        throw new Exception($"Failed to update user after {attempt + 1} attempts: {response.ReasonPhrase}, Details: {errorContent}");
-                    }
+                    await Task.Delay(200);
+                    continue;
+                }
 
-                    // Wait briefly before retrying
-                    await Task.Delay(500); // Wait 500 ms before retry
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Failed to update user: {response.ReasonPhrase}, Details: {errorContent}");
-                }
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to update user after {attempt} attempts: {response.ReasonPhrase}, Details: {errorContent}");
             }
         }
-
-
 
         public async Task<bool> UserIdExistsAsync(string userId)
         {

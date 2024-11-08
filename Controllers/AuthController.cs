@@ -36,36 +36,30 @@ namespace auth_app_backend.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            // Fetch user based on email
             var user = await _couchDbService.GetUserByEmailAsync(loginDto.Email);
             if (user == null || !user.password.Equals(loginDto.Password))
             {
                 return Unauthorized("Invalid credentials.");
             }
 
-           
-
             var token = GenerateJwtToken(user);
-            Debug.WriteLine(user.firstName);
-            Debug.WriteLine(user.email);
             return Ok(new
             {
                 token = token,
                 user = new
                 {
-                    id = user._id, // Use the _id as the unique identifier
-                    email = user.email, // Align with the frontend email field
+                    id = user._id,
+                    email = user.email,
                     role = user.role,
                     status = user.status
                 }
             });
         }
 
-
         private string GenerateJwtToken(User user)
         {
             var claims = new[] {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.NameIdentifier, user._id),
                 new Claim(ClaimTypes.Email, user.email),
                 new Claim(ClaimTypes.Role, user.role)
             };
