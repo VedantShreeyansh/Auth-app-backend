@@ -112,12 +112,14 @@ namespace auth_app_backend.Services
                     return;
                 }
 
+                // If there’s a conflict, retry after a small delay
                 if (response.StatusCode == HttpStatusCode.Conflict && attempt < 3)
                 {
-                    await Task.Delay(200);
+                    await Task.Delay(200); // Delay between retries
                     continue;
                 }
 
+                // Get detailed error message and throw an exception if retries exhausted
                 var errorContent = await response.Content.ReadAsStringAsync();
                 throw new Exception($"Failed to update user after {attempt} attempts: {response.ReasonPhrase}, Details: {errorContent}");
             }

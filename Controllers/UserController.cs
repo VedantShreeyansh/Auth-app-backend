@@ -38,7 +38,6 @@ namespace auth_app_backend.Controllers
                 return BadRequest("Invalid approval data.");
             }
 
-
             var user = await _couchDbService.GetUserByIdAsync(approvalData.UserId); // Pass UserId as string
             if (user == null)
             {
@@ -46,8 +45,16 @@ namespace auth_app_backend.Controllers
             }
 
             user.status = approvalData.IsApproved ? "Approved" : "Rejected";
-            await _couchDbService.UpdateUserAsync(user);
-            return Ok("User approval status updated.");
+
+            try
+            {
+                await _couchDbService.UpdateUserAsync(user);
+                return Ok("User approval status updated.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error updating user approval status: {ex.Message}");
+            }
         }
 
         [HttpGet("{id}")]

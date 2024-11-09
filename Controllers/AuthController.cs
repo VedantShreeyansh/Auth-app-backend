@@ -27,11 +27,21 @@ namespace auth_app_backend.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] User user)
         {
-            user.status = "Pending";
-            user.Id = await GenerateUniqueRandomId();
-            await _couchDbService.AddUserAsync(user);
-            return Ok(new { message = "User registered successfully. Awaiting approval." });
+            try
+            {
+                user.status = "Pending";
+                user._id = await GenerateUniqueRandomId();
+                await _couchDbService.AddUserAsync(user);
+                return Ok(new { message = "User registered successfully. Awaiting approval." });
+            }
+            catch (Exception ex)
+            {
+                // Improved error logging
+                Console.Error.WriteLine($"Registration error: {ex.Message}");
+                return BadRequest(new { message = "Registration failed. Please check the input data." });
+            }
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)

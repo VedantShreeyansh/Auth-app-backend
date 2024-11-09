@@ -25,7 +25,7 @@
     "Parameters": [
       {
         "Name": "user",
-        "Type": "auth_app_backend.Model.User",
+        "Type": "User",
         "IsRequired": true
       }
     ],
