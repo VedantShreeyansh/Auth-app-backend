@@ -93,4 +93,8 @@ namespace auth_app_backend
             app.Run();
         }
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05

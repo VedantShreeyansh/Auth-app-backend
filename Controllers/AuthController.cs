@@ -99,10 +99,18 @@ namespace auth_app_backend.Controllers
             return id;
         }
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05
     public class LoginDto
     {
         public string Email { get; set; }
         public string Password { get; set; }
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05

@@ -75,4 +75,8 @@ namespace auth_app_backend.Controllers
         public string UserId { get; set; } // Change UserId to string
         public bool IsApproved { get; set; }
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05
