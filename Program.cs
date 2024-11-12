@@ -1,4 +1,5 @@
-using auth_app_backend.Controllers;
+using auth_app_backend.Data; // Make sure this includes your ApplicationDbContext
+using auth_app_backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +12,27 @@ namespace auth_app_backend
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Configure JWT Authentication
+            // Load and validate JWT Settings
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+            if (string.IsNullOrEmpty(jwtSettings["Issuer"]) ||
+                string.IsNullOrEmpty(jwtSettings["Audience"]) ||
+                string.IsNullOrEmpty(jwtSettings["Key"]) ||
+                string.IsNullOrEmpty(jwtSettings["ExpiresInMinutes"]))
+            {
+                throw new ArgumentNullException("JWT configuration is missing required fields in appsettings.json");
+            }
+
+            // Register HttpClient for Dependency Injection
+            builder.Services.AddHttpClient<CouchDbService>(); // Register CouchDbService with HttpClient
+
+            // Register CouchDbService for Dependency Injection (DI)
+            builder.Services.AddScoped<CouchDbService>();
+
+            // Configure JWT Authentication
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -41,51 +57,40 @@ namespace auth_app_backend
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins("http://localhost:4200")
+                    policy.WithOrigins("http://localhost:4200") // Ensure your Angular app is running here
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });
             });
 
-            //builder.Services.AddDbContext<NoticeBoardContext>(options =>
-            //options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQLConnection")));
-        
-            builder.Services.AddAuthorization();
-            builder.Services.AddControllers();
+            // Configure PostgreSQL with ApplicationDbContext
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<NoticeBoardContext>(options => options.UseNpgsql(connectionString));
 
-            // Add Swagger/OpenAPI support
+            builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // Configure CouchDB settings and service
-            builder.Services.Configure<CouchDbSettings>(builder.Configuration.GetSection("CouchDB"));
-            builder.Services.AddScoped<CouchDbService>();
-
             var app = builder.Build();
 
-            app.UseCors("AllowFrontend");
-
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            // Ensure the CouchDB database exists at startup
+            using (var scope = app.Services.CreateScope())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                var services = scope.ServiceProvider;
+                var couchDbService = services.GetRequiredService<CouchDbService>();
+                await couchDbService.EnsureDatabaseExistsAsync(); // Ensure the database exists
             }
 
-       //     app.UseHttpsRedirection();
+            // Configure middleware
+            app.UseSwagger();
+            app.UseSwaggerUI();
+            // app.UseHttpsRedirection();
+            app.UseCors("AllowFrontend");
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.MapControllers();
+
             app.Run();
         }
-    }
-
-    public class CouchDbSettings
-    {
-        public string Url { get; set; } // URL to connect to CouchDB
-        public string Database { get; set; } // Database name
-        public string Username { get; set; } // CouchDB username
-        public string Password { get; set; } // CouchDB password
     }
 }

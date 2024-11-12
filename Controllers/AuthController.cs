@@ -1,13 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
 using auth_app_backend.Model;
-using Microsoft.Extensions.Configuration;
+using auth_app_backend.Services;
+using System.Diagnostics;
 
 namespace auth_app_backend.Controllers
 {
@@ -16,92 +16,93 @@ namespace auth_app_backend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly CouchDbService _couchDbService;
-        private readonly IConfiguration _configuration;
+        private readonly string _jwtKey;
 
         public AuthController(CouchDbService couchDbService, IConfiguration configuration)
         {
             _couchDbService = couchDbService;
-            _configuration = configuration;
-        }
-
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
-        {
-            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
-            {
-                return BadRequest(new { message = "Invalid LoginRequest" });
-            }
-
-            var user = await _couchDbService.GetUserByEmailAsync(request.Email);
-            if (user == null || user.Password != request.Password)
-            {
-                return Unauthorized(new { message = "Invalid credentials." });
-            }
-
-            var token = GenerateJwtToken(user);
-            return Ok(new { Token = token, User = user });
-        }
-
-        private string GenerateJwtToken(User user)
-        {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? throw new ArgumentNullException("JwtSettings:Key")));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email ?? throw new ArgumentNullException("Email")),
-                new Claim(ClaimTypes.Role, user.Role ?? "User"), // Defaults to User if role is null
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(double.Parse(jwtSettings["ExpiresInMinutes"] ?? "60")),
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            _jwtKey = configuration["JwtSettings:Key"];
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] User user)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var existingUser = await _couchDbService.GetUserByEmailAsync(user.Email ?? throw new ArgumentNullException("Email"));
-                if (existingUser != null)
-                {
-                    return BadRequest("User already exists.");
-                }
-
+                user.status = "Pending";
+                user._id = await GenerateUniqueRandomId();
                 await _couchDbService.AddUserAsync(user);
-                return Ok(new { message = "Registration Successful" });
+                return Ok(new { message = "User registered successfully. Awaiting approval." });
+            }
+            catch (Exception ex)
+            {
+                // Improved error logging
+                Console.Error.WriteLine($"Registration error: {ex.Message}");
+                return BadRequest(new { message = "Registration failed. Please check the input data." });
+            }
+        }
+
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            var user = await _couchDbService.GetUserByEmailAsync(loginDto.Email);
+            if (user == null || !user.password.Equals(loginDto.Password))
+            {
+                return Unauthorized("Invalid credentials.");
             }
 
-            return BadRequest(ModelState);
+            var token = GenerateJwtToken(user);
+            return Ok(new
+            {
+                token = token,
+                user = new
+                {
+                    id = user._id,
+                    email = user.email,
+                    role = user.role,
+                    status = user.status
+                }
+            });
         }
 
-        public class LoginRequest
+        private string GenerateJwtToken(User user)
         {
-            public string Email { get; set; } = string.Empty;
-            public string Password { get; set; } = string.Empty;
+            var claims = new[] {
+                new Claim(ClaimTypes.NameIdentifier, user._id),
+                new Claim(ClaimTypes.Email, user.email),
+                new Claim(ClaimTypes.Role, user.role)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+                issuer: "yourissuer",
+                audience: "youraudience",
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(40),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpGet("admin-dashboard")]
-        public IActionResult AdminDashboard()
+        private async Task<string> GenerateUniqueRandomId()
         {
-            return Ok("Admin Dashboard Accessed");
-        }
+            Random random = new Random();
+            string id;
 
-        [Authorize(Roles = "User")]
-        [HttpGet("user-dashboard")]
-        public IActionResult UserDashboard()
-        {
-            return Ok("User Dashboard Accessed");
+            do
+            {
+                id = random.Next(1, 1000000).ToString();
+            } while (await _couchDbService.UserIdExistsAsync(id));
+
+            return id;
         }
+    }
+    
+    public class LoginDto
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
     }
 }

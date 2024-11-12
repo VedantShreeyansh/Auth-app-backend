@@ -1,43 +1,38 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
-namespace auth_app_backend.Model
+public class User
 {
-    public class User
-    {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+    [JsonProperty("_id")]
+    public string _id { get; set; }
 
-        [Required(ErrorMessage = "Password is required")]
-        public string Password { get; set; }
+    [Newtonsoft.Json.JsonIgnore]
 
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid Email Address")]
-        public string Email { get; set; }
+    [JsonProperty("_rev")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] // Specify System.Text.Json for JsonIgnore
+    public string _rev { get; set; } = null; // Default to null for new documents
 
-        public string Role { get; set; }
-        public bool IsApproved { get; set; }
+    [Required(ErrorMessage = "First Name is required")]
+    public string firstName { get; set; }
 
-        public User() { }
+    [Required(ErrorMessage = "Last Name is required")]
+    public string lastName { get; set; }
 
-        public User(string firstName, string lastName, string email, string password, string role, bool isApproved)
-        {
-            FirstName = firstName;
-            LastName = lastName;
-            Email = email;
-            Password = password;
-            Role = role;
-            IsApproved = isApproved;
-        }
+    [Required(ErrorMessage = "Password is required")]
+    public string password { get; set; }
 
-        public override string ToString()
-        {
-            return $"User: {FirstName} {LastName}, Email: {Email}, Role: {Role}";
-        }
-    }
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Invalid Email Address")]
+    public string email { get; set; }
 
-    public class LoginRequest
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
+    [Required(ErrorMessage = "Role is required")]
+    public string role { get; set; }
+
+    public string status { get; set; } = "Pending"; // Default value for new users
+
+    [Column("timestamp")]
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
 }

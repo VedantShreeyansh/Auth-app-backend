@@ -1,94 +1,154 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
+using auth_app_backend.Model;
+using System.Net;
 
-namespace auth_app_backend
+namespace auth_app_backend.Services
 {
     public class CouchDbService
     {
-        private readonly string _dbUrl;
-        private readonly string _dbName;
+        private readonly string _baseUrl;
         private readonly HttpClient _httpClient;
 
-        public CouchDbService(IConfiguration configuration)
+        public CouchDbService(HttpClient httpClient)
         {
-            _dbUrl = "http://localhost:5984/"; // CouchDB server URL
-            _dbName = "users"; // CouchDB database name
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(_dbUrl)
-            };
+            _httpClient = httpClient;
+            _baseUrl = "http://localhost:5984";
 
-            // Set the authentication header
-            var byteArray = Encoding.ASCII.GetBytes("admin:password"); // Update with actual credentials
+            var byteArray = Encoding.ASCII.GetBytes("admin:password");
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
         }
 
-        // Method to Add User to CouchDB
-        public async Task AddUserAsync(Model.User user)
+        public async Task EnsureDatabaseExistsAsync()
         {
-            var jsonContent = JsonConvert.SerializeObject(user);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            try
+            var response = await _httpClient.GetAsync($"{_baseUrl}/users");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                var response = await _httpClient.PutAsync($"{_dbName}/{user.Email}", content);
-                response.EnsureSuccessStatusCode();
-            }
-            catch (HttpRequestException e)
-            {
-                Console.WriteLine($"Request error: {e.Message}");
-                throw; // Rethrow to handle it higher up, if needed
-            }
-        }
-
-        public class CouchDbFindResponse<T>
-        {
-            public List<T> Docs { get; set; }
-        }
-
-        // Method to Retrieve User by Email
-        public async Task<Model.User> GetUserByEmailAsync(string email)
-        {
-            var findQuery = new
-            {
-                selector = new
+                var createResponse = await _httpClient.PutAsync($"{_baseUrl}/users", null);
+                if (!createResponse.IsSuccessStatusCode)
                 {
-                    Email = email
-                },
-                fields = new[] { "_id", "_rev", "FirstName", "LastName", "Role", "Password", "Email", "IsApproved" },
-                limit = 1,
-                execution_stats = true
-            };
-
-            var jsonQuery = JsonConvert.SerializeObject(findQuery);
-            var content = new StringContent(jsonQuery, Encoding.UTF8, "application/json");
-
-            try
-            {
-                var response = await _httpClient.PostAsync($"{_dbName}/_find", content);
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine("Error retrieving user: " + response.StatusCode);
-                    return null;
+                    throw new Exception("Failed to create database: " + createResponse.ReasonPhrase);
                 }
-
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<CouchDbFindResponse<Model.User>>(jsonResponse);
-
-                return result?.Docs?.FirstOrDefault();
             }
-            catch (HttpRequestException e)
+        }
+
+        public async Task<User> GetUserByIdAsync(string userId)
+        {
+            try
             {
-                Console.WriteLine($"Request error: {e.Message}");
+                var response = await _httpClient.GetAsync($"{_baseUrl}/users/{userId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonData = await response.Content.ReadAsStringAsync();
+                    var user = JsonConvert.DeserializeObject<User>(jsonData);
+                    return user;
+                }
                 return null;
             }
+            catch (Exception ex)
+            {
+                throw new Exception("Error retrieving user: " + ex.Message);
+            }
         }
+
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            var selectorJson = $"{{\"selector\": {{\"email\": \"{email}\"}}}}";
+            var content = new StringContent(selectorJson, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{_baseUrl}/users/_find", content);
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonData = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<FindResult<User>>(jsonData);
+                return result.Docs.FirstOrDefault();
+            }
+            return null;
+        }
+
+        public async Task AddUserAsync(User user)
+        {
+            var json = JsonConvert.SerializeObject(user);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{_baseUrl}/users", content);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("Failed to add user.");
+            }
+        }
+
+        public async Task UpdateUserAsync(User user)
+        {
+            if (user == null || string.IsNullOrEmpty(user._id))
+            {
+                throw new ArgumentException("User data is invalid or missing.");
+            }
+
+            for (int attempt = 1; attempt <= 3; attempt++)
+            {
+                var currentUser = await GetUserByIdAsync(user._id);
+
+                if (currentUser == null)
+                {
+                    throw new Exception("User not found.");
+                }
+
+                user._rev = currentUser._rev;  // Ensure the latest _rev is used
+
+                var json = JsonConvert.SerializeObject(user);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PutAsync($"{_baseUrl}/users/{user._id}", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return;
+                }
+
+                if (response.StatusCode == HttpStatusCode.Conflict && attempt < 3)
+                {
+                    await Task.Delay(200); // Delay between retries
+                    continue;
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to update user after {attempt} attempts: {response.ReasonPhrase}, Details: {errorContent}");
+            }
+        }
+
+
+        public async Task<bool> UserIdExistsAsync(string userId)
+        {
+            var response = await _httpClient.GetAsync($"{_baseUrl}/users/{userId}");
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<IEnumerable<User>> GetPendingUsersAsync()
+        {
+            var selectorJson = "{\"selector\": {\"status\": \"Pending\"}}";
+            var content = new StringContent(selectorJson, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{_baseUrl}/users/_find", content);
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonData = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<FindResult<User>>(jsonData);
+                return result.Docs;
+            }
+            return Enumerable.Empty<User>();
+        }
+    }
+
+    public class FindResult<T>
+    {
+        [JsonProperty("docs")]
+        public List<T> Docs { get; set; }
     }
 }
