@@ -31,6 +31,7 @@ namespace auth_app_backend.Controllers
             {
                 user.status = "Pending";
                 user._id = await GenerateUniqueRandomId();
+            //   user._rev = null; // Ensure _rev is null for new users
                 await _couchDbService.AddUserAsync(user);
                 return Ok(new { message = "User registered successfully. Awaiting approval." });
             }
@@ -41,7 +42,6 @@ namespace auth_app_backend.Controllers
                 return BadRequest(new { message = "Registration failed. Please check the input data." });
             }
         }
-
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
@@ -99,18 +99,11 @@ namespace auth_app_backend.Controllers
             return id;
         }
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05
     public class LoginDto
     {
         public string Email { get; set; }
         public string Password { get; set; }
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05
+

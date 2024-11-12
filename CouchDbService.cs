@@ -100,11 +100,10 @@ namespace auth_app_backend.Services
                     throw new Exception("User not found.");
                 }
 
-<<<<<<< HEAD
-                user._rev = currentUser._rev;  // Ensure the latest _rev is used
-=======
+
+
                 user._rev = currentUser._rev;
->>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05
+
 
                 var json = JsonConvert.SerializeObject(user);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -116,29 +115,17 @@ namespace auth_app_backend.Services
                     return;
                 }
 
-<<<<<<< HEAD
-=======
-                // If there’s a conflict, retry after a small delay
->>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05
                 if (response.StatusCode == HttpStatusCode.Conflict && attempt < 3)
                 {
                     await Task.Delay(200); // Delay between retries
                     continue;
                 }
 
-<<<<<<< HEAD
-=======
-                // Get detailed error message and throw an exception if retries exhausted
->>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05
                 var errorContent = await response.Content.ReadAsStringAsync();
                 throw new Exception($"Failed to update user after {attempt} attempts: {response.ReasonPhrase}, Details: {errorContent}");
             }
         }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05
         public async Task<bool> UserIdExistsAsync(string userId)
         {
             var response = await _httpClient.GetAsync($"{_baseUrl}/users/{userId}");

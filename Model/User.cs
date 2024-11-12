@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-<<<<<<< HEAD
 using System.ComponentModel.DataAnnotations.Schema;
-=======
->>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05
 using System.Text.Json.Serialization;
 
 public class User
@@ -11,7 +8,6 @@ public class User
     [JsonProperty("_id")]
     public string _id { get; set; }
 
-<<<<<<< HEAD
     [Newtonsoft.Json.JsonIgnore]
 
     [JsonProperty("_rev")]
@@ -40,27 +36,6 @@ public class User
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
 }
-=======
-    [JsonProperty("_rev")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] // Specify System.Text.Json for JsonIgnore
-    public string _rev { get; set; } = null; // Default to null for new documents
 
-    [Required(ErrorMessage = "First Name is required")]
-    public string firstName { get; set; }
+   
 
-    [Required(ErrorMessage = "Last Name is required")]
-    public string lastName { get; set; }
-
-    [Required(ErrorMessage = "Password is required")]
-    public string password { get; set; }
-
-    [Required(ErrorMessage = "Email is required")]
-    [EmailAddress(ErrorMessage = "Invalid Email Address")]
-    public string email { get; set; }
-
-    [Required(ErrorMessage = "Role is required")]
-    public string role { get; set; }
-
-    public string status { get; set; } = "Pending"; // Default value for new users
-}
->>>>>>> 36499e728e35cd3a78ae3c8e08b8183a639edb05
