@@ -30,32 +30,32 @@ namespace auth_app_backend.Controllers
             return Ok(pendingUsers);
         }
 
-        [HttpPost("approve")]
-        public async Task<IActionResult> ApproveUser([FromBody] ApprovalDto approvalData)
-        {
-            if (approvalData == null || string.IsNullOrEmpty(approvalData.UserId))
-            {
-                return BadRequest("Invalid approval data.");
-            }
+        //[HttpPost("approve")]
+        //public async Task<IActionResult> ApproveUser([FromBody] ApprovalDto approvalData)
+        //{
+        //    if (approvalData == null || string.IsNullOrEmpty(approvalData.UserId))
+        //    {
+        //        return BadRequest("Invalid approval data.");
+        //    }
 
-            var user = await _couchDbService.GetUserByIdAsync(approvalData.UserId); // Pass UserId as string
-            if (user == null)
-            {
-                return NotFound("User not found.");
-            }
+        //    var user = await _couchDbService.GetUserByIdAsync(approvalData.UserId); // Pass UserId as string
+        //    if (user == null)
+        //    {
+        //        return NotFound("User not found.");
+        //    }
 
-            user.status = approvalData.IsApproved ? "Approved" : "Rejected";
+        //    user.status = approvalData.IsApproved ? "Approved" : "Rejected";
 
-            try
-            {
-                await _couchDbService.UpdateUserAsync(user);
-                return Ok("User approval status updated.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error updating user approval status: {ex.Message}");
-            }
-        }
+        //    try
+        //    {
+        //        await _couchDbService.UpdateUserAsync(user);
+        //        return Ok("User approval status updated.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Error updating user approval status: {ex.Message}");
+        //    }
+        //}
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(string id) // Change parameter type to string
@@ -70,9 +70,9 @@ namespace auth_app_backend.Controllers
         }
     }
 
-    public class ApprovalDto
-    {
-        public string UserId { get; set; } // Change UserId to string
-        public bool IsApproved { get; set; }
-    }
+    //public class ApprovalDto
+    //{
+    //    public string UserId { get; set; } // Change UserId to string
+    //    public bool IsApproved { get; set; }
+    //}
 }

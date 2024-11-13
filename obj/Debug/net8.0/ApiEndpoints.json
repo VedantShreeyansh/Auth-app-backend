@@ -32,6 +32,27 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "auth_app_backend.Controllers.AuthController",
+    "Method": "ApproveUser",
+    "RelativePath": "api/Auth/User/{id}/approve",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "approveUserDto",
+        "Type": "auth_app_backend.Dto.ApproveUserDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "auth_app_backend.Controllers.NoticeBoardController",
     "Method": "GetMessages",
     "RelativePath": "api/NoticeBoard/messages",
@@ -68,22 +89,6 @@
       {
         "Name": "id",
         "Type": "System.String",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "auth_app_backend.Controllers.UserController",
-    "Method": "ApproveUser",
-    "RelativePath": "api/User/approve",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "approvalData",
-        "Type": "auth_app_backend.Controllers.ApprovalDto",
         "IsRequired": true
       }
     ],

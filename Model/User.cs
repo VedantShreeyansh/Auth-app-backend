@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 
 public class User
 {
+
+    [Key]
     [JsonProperty("_id")]
     public string _id { get; set; }
 

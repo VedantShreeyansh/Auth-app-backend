@@ -64,7 +64,7 @@ namespace auth_app_backend
             });
 
             // Configure PostgreSQL with ApplicationDbContext
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            var connectionString = builder.Configuration.GetConnectionString("postgres");
             builder.Services.AddDbContext<NoticeBoardContext>(options => options.UseNpgsql(connectionString));
 
             builder.Services.AddControllers();

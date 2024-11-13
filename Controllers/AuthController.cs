@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using auth_app_backend.Model;
 using auth_app_backend.Services;
 using System.Diagnostics;
+using auth_app_backend.Dto;
 
 namespace auth_app_backend.Controllers
 {
@@ -66,6 +67,29 @@ namespace auth_app_backend.Controllers
             });
         }
 
+        [HttpPut("User/{id}/approve")]
+        public async Task<IActionResult> ApproveUser(string id, [FromBody] ApproveUserDto approveUserDto)
+        {
+            try
+            {
+                var user = await _couchDbService.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                user.role = approveUserDto.Role;
+                user.status = "Approved";
+                await _couchDbService.UpdateUserAsync(user);
+
+                return Ok(new { message = "User approved successfully." });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Approval error: {ex.Message}");
+                return BadRequest(new { message = "Approval failed. Please try again." });
+            }
+        }
         private string GenerateJwtToken(User user)
         {
             var claims = new[] {
