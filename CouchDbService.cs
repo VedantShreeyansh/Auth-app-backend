@@ -74,6 +74,7 @@ namespace auth_app_backend.Services
 
         public async Task AddUserAsync(User user)
         {
+
             var json = JsonConvert.SerializeObject(user);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -84,6 +85,8 @@ namespace auth_app_backend.Services
             }
         }
 
+ 
+
         public async Task UpdateUserAsync(User user)
         {
             if (user == null || string.IsNullOrEmpty(user._id))
@@ -91,8 +94,7 @@ namespace auth_app_backend.Services
                 throw new ArgumentException("User data is invalid or missing.");
             }
 
-            for (int attempt = 1; attempt <= 3; attempt++)
-            {
+            
                 var currentUser = await GetUserByIdAsync(user._id);
 
                 if (currentUser == null)
@@ -100,29 +102,31 @@ namespace auth_app_backend.Services
                     throw new Exception("User not found.");
                 }
 
-
-
-                user._rev = currentUser._rev;
-
+                await DeleteUserAsync(currentUser._id);
 
                 var json = JsonConvert.SerializeObject(user);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PutAsync($"{_baseUrl}/users/{user._id}", content);
+                await AddUserAsync(user);
+        }
 
-                if (response.IsSuccessStatusCode)
-                {
-                    return;
-                }
+        public async Task DeleteUserAsync(string userId)
+        {
+            var user = await GetUserByIdAsync(userId);
 
-                if (response.StatusCode == HttpStatusCode.Conflict && attempt < 3)
-                {
-                    await Task.Delay(200); // Delay between retries
-                    continue;
-                }
+            if (user == null)
+            {
+                throw new Exception("User not found.");
+            }
 
+            var deleteUrl = $"{_baseUrl}/users/{user._id}?rev={user._rev}";
+
+            var response = await _httpClient.DeleteAsync(deleteUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Failed to update user after {attempt} attempts: {response.ReasonPhrase}, Details: {errorContent}");
+                throw new Exception($"Failed to delete user: {response.ReasonPhrase}, Details: {errorContent}");
             }
         }
 

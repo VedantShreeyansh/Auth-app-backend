@@ -1,20 +1,17 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-public class User
+public class ApproveUser
 {
-
     [Key]
     [JsonProperty("_id")]
     public string _id { get; set; }
 
-    [Newtonsoft.Json.JsonIgnore]
-
     [JsonProperty("_rev")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] // Specify System.Text.Json for JsonIgnore
-    public string _rev { get; set; } = null; // Default to null for new documents
+    public string _rev { get; set; } = null;
 
     [Required(ErrorMessage = "First Name is required")]
     public string firstName { get; set; }
@@ -32,12 +29,25 @@ public class User
     [Required(ErrorMessage = "Role is required")]
     public string role { get; set; }
 
-    public string status { get; set; } = "Pending"; // Default value for new users
+    public string status { get; set; } = "Pending";
 
     [Column("timestamp")]
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
     public bool isSuperAdmin { get; internal set; }
+
+    // Constructor with all fields
+    public ApproveUser(string id, string rev, string firstName, string lastName, string password, string email, string role, string status, DateTime timestamp, bool isSuperAdmin)
+    {
+        _id = id;
+        _rev = rev;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.password = password;
+        this.email = email;
+        this.role = role;
+        this.status = status;
+        Timestamp = timestamp;
+        this.isSuperAdmin = isSuperAdmin;
+    }
 }
-
-   
-

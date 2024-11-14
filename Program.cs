@@ -1,5 +1,6 @@
 using auth_app_backend.Data; // Make sure this includes your ApplicationDbContext
 using auth_app_backend.Services;
+using auth_app_backend.Hubs; // Ensure this includes your SignalR Hubs
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -59,13 +60,17 @@ namespace auth_app_backend
                 {
                     policy.WithOrigins("http://localhost:4200") // Ensure your Angular app is running here
                           .AllowAnyHeader()
-                          .AllowAnyMethod();
+                          .AllowAnyMethod()
+                          .AllowCredentials(); // Allow credentials if needed
                 });
             });
 
             // Configure PostgreSQL with ApplicationDbContext
             var connectionString = builder.Configuration.GetConnectionString("postgres");
             builder.Services.AddDbContext<NoticeBoardContext>(options => options.UseNpgsql(connectionString));
+
+            // Add SignalR services
+            builder.Services.AddSignalR();
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -87,8 +92,16 @@ namespace auth_app_backend
             // app.UseHttpsRedirection();
             app.UseCors("AllowFrontend");
             app.UseAuthentication();
+            app.UseRouting();
             app.UseAuthorization();
             app.MapControllers();
+
+            // Map SignalR hub
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapHub<NoticeBoardHub>("/noticeboardHub");
+            });
 
             app.Run();
         }

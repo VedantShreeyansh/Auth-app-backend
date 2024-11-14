@@ -2,6 +2,11 @@
 using System.Threading.Tasks;
 using auth_app_backend.Model;
 using auth_app_backend.Services;
+using auth_app_backend.Dto;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace auth_app_backend.Controllers
 {
@@ -29,6 +34,33 @@ namespace auth_app_backend.Controllers
 
             return Ok(pendingUsers);
         }
+
+        [HttpPut("{id}/approve")]
+        public async Task<IActionResult> ApproveUser(string id, [FromBody] ApproveUserDto approveUserDto)
+        {
+            try
+            {
+                var user = await _couchDbService.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                user.role = approveUserDto.Role;
+                user.status = "Approved";
+                user.isSuperAdmin = approveUserDto.IsSuperAdmin;
+                await _couchDbService.UpdateUserAsync(user);
+
+                return Ok(new { message = "User approved successfully." });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Approval error: {ex.Message}");
+                return BadRequest(new { message = "Approval failed. Please try again." });
+            }
+        }
+       
+
 
         //[HttpPost("approve")]
         //public async Task<IActionResult> ApproveUser([FromBody] ApprovalDto approvalData)
@@ -75,4 +107,10 @@ namespace auth_app_backend.Controllers
     //    public string UserId { get; set; } // Change UserId to string
     //    public bool IsApproved { get; set; }
     //}
+
+    public class ApproveUserDto
+    {
+        public string Role { get; set; }
+        public bool IsSuperAdmin { get; set; }
+    }
 }
